@@ -210,6 +210,39 @@ bool setup_uvm(uint64_t map, uint64_t start, int size)
     return status;
 }
 
+bool copy_uvm(uint64_t d_map, uint64_t s_map, int size)
+{
+    bool status = false;
+    unsigned int index;
+    PD pd = NULL;
+    uint64_t start;
+
+    void *page = kalloc();
+    if (page != NULL) {
+        memset(page, 0, PAGE_SIZE);
+        status = map_pages(d_map, 0x400000, 0x400000 + PAGE_SIZE, V2P(page), PTE_P|PTE_W|PTE_U);
+
+        if (status == true) {
+            pd = find_pdpt_entry(s_map, 0x400000, 0, 0);
+            if (pd == NULL) {
+                free_vm(d_map);
+                return false;
+            }
+
+            index = (0x400000U >> 21) & 0x1FF;
+            ASSERT(((uint64_t)pd[index]& PTE_P) == 1);
+            start = P2V(PTE_ADDR(pd[index]));
+            memcpy(page, (void*)start, size);
+        }
+        else {
+            kfree((uint64_t)page);
+            free_vm(d_map);
+        }
+    }
+
+    return status;
+}
+
 void free_pages(uint64_t map, uint64_t vstart, uint64_t vend)
 {
     unsigned int index;

@@ -3,12 +3,16 @@
 
 #include "trap.h"
 #include "lib.h"
+#include "file.h"
+
+#define MAX_OPEN_FILE 100
 
 struct Process {
     struct List *next;
     int pid;
     int state;
     int wait;
+    struct FileDesc *file[MAX_OPEN_FILE];
     uint64_t context;
     uint64_t page_map;
     uint64_t stack;
@@ -56,6 +60,9 @@ void swap(uint64_t *prev, uint64_t next);
 void sleep(int wait);
 void wake_up(int wait);
 void exit(void);
-void wait(void);
+void wait(int pid);
+struct ProcessControl* get_pc(void);
+int fork(void);
+int exec(struct Process *process, char *name);
 
 #endif

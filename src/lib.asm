@@ -21,23 +21,13 @@ memcmp:
 
 memcpy:
 memmove:
-    cld
-    cmp rsi, rdi
-    jae .copy
-    mov r8, rsi
-    add r8, rdx
-    cmp r8, rdi
-    jbe .copy
+    std                 ; Set direction flag to backwards
+    add rdi, rdx        ; Add the length to the destination pointer
+    add rsi, rdx        ; Add the length to the source pointer
+    sub rdi, 1          ; Subtract 1 from the destination pointer
+    sub rsi, 1          ; Subtract 1 from the source pointer
 
-.overlap:
-    std
-    add rdi, rdx
-    add rsi, rdx
-    sub rdi, 1
-    sub rsi, 1
-
-.copy:
-    mov ecx, edx
-    rep movsb
-    cld
-    ret
+    mov ecx, edx        ; Move the length to ecx for loop
+    rep movsb           ; Copy the bytes
+    cld                 ; Clear the direction flag
+    ret                 ; Return

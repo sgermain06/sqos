@@ -70,7 +70,7 @@ static struct Process* alloc_new_process(void)
     return proc;
 }
 
-static struct ProcessControl* get_pc(void)
+struct ProcessControl* get_pc(void)
 {
     return &pc;
 }
@@ -204,15 +204,16 @@ void exit(void)
     process_control = get_pc();
     process = process_control->current_process;
     process->state = PROC_KILLED;
+    process->wait = process->pid;
 
     list = &process_control->kill_list;
     append_list_tail(list, (struct List*)process);
 
-    wake_up(1);
+    wake_up(-3);
     schedule();
 }
 
-void wait(void)
+void wait(int pid)
 {
     struct ProcessControl *process_control;
     struct Process *process;
@@ -223,15 +224,90 @@ void wait(void)
 
     while (1) {
         if (!is_list_empty(list)) {
-            process = (struct Process*)remove_list_head(list);
-            ASSERT(process->state == PROC_KILLED);
+            process = (struct Process*)remove_list(list, pid);
+            if (process != NULL) {
+                ASSERT(process->state == PROC_KILLED);
+                kfree(process->stack);
+                free_vm(process->page_map);
+                memset(process, 0, sizeof(struct Process));
+                
+                for (int i = 0; i < MAX_OPEN_FILE; i++) {
+                    if (process->file[i] != NULL) {
+                        process->file[i]->fcb->count--;
+                        process->file[i]->count--;
 
-            kfree(process->stack);
-            free_vm(process->page_map);
-            memset(process, 0, sizeof(struct Process));
+                        if (process->file[i]->count == 0) {
+                            process->file[i]->fcb = NULL;
+                        }
+                    }
+                }
+                memset(process, 0, sizeof(struct Process));
+                break;
+            }
         }
-        else {
-            sleep(1);
+
+        sleep(-3);
+    }
+}
+
+int fork(void)
+{
+    struct ProcessControl *process_control = get_pc();
+    struct Process *current_process = process_control->current_process;
+    struct HeadList *list = &process_control->ready_list;
+
+    struct Process *process = alloc_new_process();
+    if (process == NULL) {
+        ASSERT(0);
+        return -1;
+    }
+
+    if  (copy_uvm(process->page_map, current_process->page_map, PAGE_SIZE) == false) {
+        ASSERT(0);
+        return -1;
+    }
+    
+    memcpy(process->file, current_process->file, MAX_OPEN_FILE * sizeof(struct FileDesc*));
+
+    for (int i = 0; i < 100; i++) {
+        if (process->file[i] != NULL) {
+            process->file[i]->count++;
+            process->file[i]->fcb->count++;
         }
     }
+
+    memcpy(process->tf, current_process->tf, sizeof(struct TrapFrame));
+    process->tf->rax = 0;
+    process->state = PROC_READY;
+    append_list_tail(list, (struct List*)process);
+
+    return process->pid;
+}
+
+int exec(struct Process *process, char *name)
+{
+    int fd = open_file(process, name);
+
+    if (fd == -1) {
+        exit();
+    }
+
+    memset((void*)0x400000, 0, PAGE_SIZE);
+    uint32_t size = get_file_size(process, fd);
+    size = read_file(process, fd, (void*)0x400000, size);
+
+    if (size == 0xffffffff) {
+        exit();
+    }
+
+    close_file(process, fd);
+
+    memset(process->tf, 0, sizeof(struct TrapFrame));
+    process->tf->cs = 0x10 | 3;
+    process->tf->rip = 0x400000;
+    process->tf->ss = 0x18 | 3;
+    process->tf->rsp = 0x400000 + PAGE_SIZE;
+    process->tf->rflags = 0x202;
+
+    return 0;
 }
