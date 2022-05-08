@@ -318,24 +318,4 @@ Gdt64Len:   equ $-Gdt64
 Gdt64Ptr:   dw Gdt64Len-1
             dd Gdt64
 
-
-
-;     mov si, Message         ; Assign the address of the message to the source index register
-;     mov ax, 0xb800          ; Set the video memory address to 0xb800
-;     mov es, ax              ; Set the video memory segment to es
-;     xor di, di              ; Zero out di, which will produce address 0xb8000
-;     mov cx, MessageLen      ; Set the length of the message to cx for loop
-
-; PrintMessage:
-;     mov al, [si]            ; Fetch the next character from the message
-;     mov [es:di], al         ; Write the character code to the video memory
-;     mov byte[es:di+1], 0xa  ; Write the character attribute to the video memory
-
-;     add di, 2               ; Add 2 to di, so we can write the next character
-;     add si, 1               ; Add 1 to si, so we can fetch the next character
-;     loop PrintMessage       ; Loop back to the label to print the next character
-
-    ; mov byte[0xb8000], 'P'
-    ; mov byte[0xb8001], 0xa
-
 CModule:

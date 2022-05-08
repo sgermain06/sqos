@@ -1,12 +1,12 @@
 #include "debug.h"
 #include "print.h"
 
-void error_check(char *file, uint64_t line)
+void error_check(char *file, uint64_t line, const char *function)
 {
     printk("\n-----------------------------------------\n");
     printk("                Error Check");
     printk("\n-----------------------------------------\n");
-    printk("Assertion failed [%s:%u]", file, line);
+    printk("Assertion failed [%s:%u] in function %s", file, line, function);
 
     while (1) {}
 }

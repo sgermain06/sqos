@@ -139,10 +139,13 @@ PICInit:
     retf
 
 KernelEntry:
-
+    xor ax, ax
+    mov ss, ax
+    
     mov rsp, 0xffff800000200000       ; Setup stack at 0xffff800000200000
     call KMain
 
 End:
+    sti
     hlt
     jmp End

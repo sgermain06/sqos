@@ -2,7 +2,6 @@
 #define _MEMORY_H_
 
 #include "stdint.h"
-#include "lib.h"
 #include "stddef.h"
 #include "stdbool.h"
 

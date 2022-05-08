@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "print.h"
 #include "debug.h"
+#include "lib.h"
 
 static void free_region(uint64_t v, uint64_t e);
 
@@ -13,8 +14,8 @@ extern char end;
 
 void init_memory(void)
 {
-    int32_t count = *(int32_t*)0x9000;
-    struct E820 *mem_map = (struct E820 *)0x9008;
+    int32_t count = *(int32_t*)0x20000;
+    struct E820 *mem_map = (struct E820 *)0x20008;
     int free_region_count = 0;
 
     ASSERT(count <= 50);
@@ -56,7 +57,7 @@ uint64_t get_total_memory(void)
 static void free_region(uint64_t v, uint64_t e)
 {
     for (uint64_t start = PA_UP(v); start+PAGE_SIZE <= e; start += PAGE_SIZE) {
-        if (start + PAGE_SIZE <= 0xffff800040000000) {
+        if (start + PAGE_SIZE <= 0xffff800030000000) {
             kfree(start);
         }
     }
@@ -66,7 +67,7 @@ void kfree(uint64_t v)
 {
     ASSERT(v % PAGE_SIZE == 0);
     ASSERT(v >= (uint64_t)&end);
-    ASSERT(v + PAGE_SIZE <= 0xffff800040000000);
+    ASSERT(v + PAGE_SIZE <= 0xffff800030000000);
 
     struct Page *page_address = (struct Page *)v;
     page_address->next = free_memory.next;
@@ -80,7 +81,7 @@ void* kalloc(void)
     if (page_address != NULL) {
         ASSERT((uint64_t)page_address % PAGE_SIZE == 0);
         ASSERT((uint64_t)page_address >= (uint64_t)&end);
-        ASSERT((uint64_t)page_address + PAGE_SIZE <= 0xffff800040000000);
+        ASSERT((uint64_t)page_address + PAGE_SIZE <= 0xffff800030000000);
 
         free_memory.next = page_address->next;
     }
@@ -142,7 +143,7 @@ bool map_pages(uint64_t map, uint64_t v, uint64_t e, uint64_t pa, uint32_t attri
 
     ASSERT(v < e);
     ASSERT(pa % PAGE_SIZE == 0);
-    ASSERT(pa + vend - vstart < 1024 * 1024 * 1024);
+    ASSERT(pa + vend - vstart <= 1024 * 1024 * 1024);
 
     do {
         pd = find_pdpt_entry(map, vstart, 1, attribute);
@@ -170,14 +171,14 @@ void switch_vm(uint64_t map)
 uint64_t setup_kvm(void)
 {
     uint64_t page_map = (uint64_t)kalloc();
+
     if (page_map != 0) {
         memset((void*)page_map, 0, PAGE_SIZE);
-        if (!map_pages(page_map, KERNEL_BASE, memory_end, V2P(KERNEL_BASE), PTE_P|PTE_W)) {
+        if (!map_pages(page_map, KERNEL_BASE, P2V(0x40000000), V2P(KERNEL_BASE), PTE_P|PTE_W)) {
             free_vm(page_map);
             page_map = 0;
         }
     }
-
     return page_map;
 }
 

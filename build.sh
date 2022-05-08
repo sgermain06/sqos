@@ -2,32 +2,31 @@ nasm -f bin -o build/boot.bin src/boot.asm
 nasm -f bin -o build/loader.bin src/loader/loader.asm
 nasm -f elf64 -o build/entry.o src/loader/entry.asm
 nasm -f elf64 -o build/liba.o src/lib.asm
-gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -I src -c src/loader/main.c -o build/main.o
+nasm -f elf64 -o build/kernel.o src/kernel.asm
+nasm -f elf64 -o build/trapa.o src/trap.asm -I src/include
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -I src -c src/loader/file.c -o build/file.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -I src -c src/loader/main.c -o build/loader_main.o
 gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/print.c -o build/print.o
 gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/debug.c -o build/debug.o
-ld -nostdlib -T src/loader/link.lds -o build/entry build/entry.o build/main.o build/liba.o build/print.o build/debug.o
+ld -nostdlib -T src/loader/link.lds -o build/entry build/entry.o build/loader_main.o build/liba.o build/print.o build/debug.o build/file.o
 objcopy -O binary build/entry build/entry.bin
 dd if=build/entry.bin >> build/loader.bin
 
-# nasm -f elf64 -o build/kernel.o src/kernel.asm
-# nasm -f elf64 -o build/trapa.o src/trap.asm -I src/include
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/main.c -o build/main.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/trap.c -o build/trap.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/print.c -o build/print.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/debug.c -o build/debug.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/memory.c -o build/memory.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/process.c -o build/process.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/syscall.c -o build/syscall.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/lib.c -o build/lib.o
-# gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/keyboard.c -o build/keyboard.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/main.c -o build/kernel_main.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/trap.c -o build/trap.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/memory.c -o build/memory.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/process.c -o build/process.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/syscall.c -o build/syscall.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/lib.c -o build/lib.o
+gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c src/keyboard.c -o build/keyboard.o
 
-# ld -nostdlib -T link.lds -o build/kernel build/kernel.o build/main.o build/trapa.o build/trap.o build/liba.o build/lib.o build/print.o build/debug.o build/memory.o build/process.o build/syscall.o build/keyboard.o
-# objcopy -O binary build/kernel build/kernel.bin
+ld -nostdlib -T link.lds -o build/kernel build/kernel.o build/kernel_main.o build/trapa.o build/trap.o build/liba.o build/lib.o build/print.o build/debug.o build/memory.o build/process.o build/syscall.o build/keyboard.o
+objcopy -O binary build/kernel build/kernel.bin
 
-# ./src/lib/build.sh
-# ./src/user1/build.sh
-# ./src/user2/build.sh
-# ./src/user3/build.sh
+./src/lib/build.sh
+./src/user1/build.sh
+./src/user2/build.sh
+./src/user3/build.sh
 
 dd if=build/boot.bin of=os.img bs=512 count=1 conv=notrunc
 dd if=build/loader.bin of=os.img bs=512 count=15 seek=1 conv=notrunc
