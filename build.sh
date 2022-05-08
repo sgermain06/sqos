@@ -24,7 +24,7 @@ gcc -std=c99 -mcmodel=large -ffreestanding -fno-stack-protector -mno-red-zone -c
 ld -nostdlib -T link.lds -o build/kernel build/kernel.o build/kernel_main.o build/trapa.o build/trap.o build/liba.o build/lib.o build/print.o build/debug.o build/memory.o build/process.o build/syscall.o build/keyboard.o build/file.o
 objcopy -O binary build/kernel build/kernel.bin
 
-./src/lib/build.sh
+./src/stdlib/build.sh
 ./src/console/build.sh
 ./src/totalmem/build.sh
 ./src/ls/build.sh

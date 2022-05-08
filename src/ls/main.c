@@ -1,5 +1,5 @@
 #include "stdint.h"
-#include "lib.h"
+#include "stdlib/lib.h"
 
 struct DirEntry buffer[1024];
 
@@ -27,6 +27,7 @@ int main(void)
             
             memcpy(name, buffer[i].name, 8);
             memcpy(ext, buffer[i].ext, 3);
+            
             totalDiskUsage += (uint64_t)buffer[i].file_size;
             
             if ((buffer[i].attributes & 0x10) == 0x10) {

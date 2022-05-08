@@ -2,7 +2,7 @@
 #define _CONSOLE_H_
 
 #include "stdint.h"
-#include "lib.h"
+#include "stdlib/lib.h"
 
 typedef void (*CmdFunc)(void);
 

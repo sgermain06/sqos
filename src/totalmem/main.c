@@ -1,5 +1,5 @@
 #include "stdint.h"
-#include "lib.h"
+#include "stdlib/lib.h"
 
 int main(void)
 {

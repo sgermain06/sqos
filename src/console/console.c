@@ -1,4 +1,3 @@
-#include "lib.h"
 #include "console.h"
 
 static void cmd_get_total_memory(void)
