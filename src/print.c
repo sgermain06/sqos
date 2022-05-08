@@ -77,12 +77,6 @@ void write_screen(const char *buffer, int size, char color)
 
     for (int i = 0; i < size; i++) {
 
-        if  (row >= 25) {
-            memcpy(sb->buffer, sb->buffer + LINE_SIZE, LINE_SIZE * 24);
-            memset(sb->buffer + LINE_SIZE * 24, 0, LINE_SIZE);
-            row--;
-        }
-
         if (buffer[i] == '\n') {
             column = 0;
             row++;
@@ -111,6 +105,12 @@ void write_screen(const char *buffer, int size, char color)
                 column = 0;
                 row++;
             }
+        }
+
+        if (row >= 25) {
+            memcpy(sb->buffer, sb->buffer + LINE_SIZE, LINE_SIZE * 24);
+            memset(sb->buffer + LINE_SIZE * 24, 0, LINE_SIZE);
+            row--;
         }
     }
 

@@ -40,6 +40,6 @@ dd if=build/loader.bin of=os.img bs=512 count=15 seek=1 conv=notrunc
 sudo mount -o loop,rw,sync,offset=32256 os.img ./mnt
 sudo cp build/kernel.bin ./mnt/
 sudo cp build/console.bin ./mnt/
-sudo cp build/totalmem.bin ./mnt/
-sudo cp build/ls.bin ./mnt/
+sudo cp build/totalmem ./mnt/
+sudo cp build/ls ./mnt/
 sudo umount ./mnt

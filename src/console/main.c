@@ -14,6 +14,14 @@ int main(void)
             continue;
         }
 
+        // Make sure that commands typed in lowercase also work
+        printf("Buffer size: %u\n", buffer_size);
+        for (int i = 0; buffer[i] != '\0' && i < buffer_size; i++) {
+            if (buffer[i] >= 'a' && buffer[i] <= 'z') {
+                buffer[i] = buffer[i] - 32;
+            }
+        }
+
         int fd = open_file(buffer);
         if (fd == -1) {
             printf("Command not found\n");
