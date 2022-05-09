@@ -108,7 +108,9 @@ void write_screen(const char *buffer, int size, char color)
         }
 
         if (row >= 25) {
-            memcpy(sb->buffer, sb->buffer + LINE_SIZE, LINE_SIZE * 24);
+            for (int i = 1; i < 25; i++) {
+                memcpy(sb->buffer + (LINE_SIZE * (i - 1)), sb->buffer + (LINE_SIZE * i), LINE_SIZE);
+            }
             memset(sb->buffer + LINE_SIZE * 24, 0, LINE_SIZE);
             row--;
         }
